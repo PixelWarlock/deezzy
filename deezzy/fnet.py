@@ -32,3 +32,8 @@ class Fnet(torch.nn.Module):
         # compute representation with which we will turn adjectives of features into class probabilities
         cmfp = self.class_head(z)
 
+        # compute univariate gaussian for fuzzifying the features
+
+        # compute the adjectives of the fuzzified features
+
+        # compute the class assigment using multivariate gaussian
