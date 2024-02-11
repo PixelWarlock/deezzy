@@ -1,8 +1,9 @@
+import math
 import torch
 
 class LinearRelu(torch.nn.Module):
     def __init__(self, in_features:int, out_features:int):
-        super(LinearReluDropout, self).__init__()
+        super(LinearRelu, self).__init__()
         self.module = torch.nn.Sequential(
             torch.nn.Linear(in_features=in_features, out_features=out_features),
             torch.nn.ReLU()
@@ -22,4 +23,52 @@ class LinearReluDropout(torch.nn.Module):
     
     def forward(self,x):
         return self.module(x)
+    
+class LinearFeatureHead(torch.nn.Module):
+    def __init__(self,
+                 hidden_size:int,
+                 in_features:int,
+                 granularity:int):
+        super(LinearFeatureHead, self).__init__()
+
+        self.linear_layers = torch.nn.ModuleList()
+        head_shape = math.prod((in_features, granularity,2))
+        for _ in range(head_shape):
+            self.linear_layers.append(torch.nn.Linear(in_features=hidden_size, out_features=1))
+
+        self.in_features = in_features
+        self.granularity = granularity
+
+    def forward(self, x):
+        batch_size = x.size(0)
+        outputs = []
+        for layer in self.linear_layers:
+            z = layer(x)
+            outputs.append(z.unsqueeze(dim=1))
+        return torch.cat(outputs, dim=1).view(batch_size, self.in_features, self.granularity, 2)
+    
+class LinearClassHead(torch.nn.Module):
+    def __init__(self,
+                 hidden_size:int,
+                 in_features:int,
+                 num_classes:int,
+                 num_gaussians:int):
+        super(LinearClassHead, self).__init__()
+
+        self.linear_layers = torch.nn.ModuleList()
+        head_shape = math.prod((num_classes, num_gaussians, in_features, 2))
+        for _ in range(head_shape):
+            self.linear_layers.append(torch.nn.Linear(in_features=hidden_size, out_features=1))
+
+        self.in_features = in_features
+        self.num_gaussians = num_gaussians
+        self.num_classes = num_classes
+
+    def forward(self, x):
+        batch_size = x.size(0)
+        outputs = []
+        for layer in self.linear_layers:
+            z = layer(x)
+            outputs.append(z.unsqueeze(dim=1))
+        return torch.cat(outputs, dim=1).view(batch_size, self.num_classes, self.num_gaussians, self.in_features, 2)
 
