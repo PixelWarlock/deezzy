@@ -1,4 +1,5 @@
 import torch
+from deezzy.memberships.gaussian import Gaussian
 from deezzy.modules.linear import LinearFeatureHead, LinearClassHead
 
 class Fnet(torch.nn.Module):
@@ -22,6 +23,8 @@ class Fnet(torch.nn.Module):
                                           num_classes=num_classes,
                                           num_gaussians=num_gaussians)
 
+        self.feature_gaussian = Gaussian(univariate=True)
+        self.class_gaussian = Gaussian(univariate=False)
 
     def forward(self, x):
         z = self.backbone(x)
@@ -33,6 +36,7 @@ class Fnet(torch.nn.Module):
         cmfp = self.class_head(z)
 
         # compute univariate gaussian for fuzzifying the features
+        self.feature_gaussian(x, fgp)
 
         # compute the adjectives of the fuzzified features
 
