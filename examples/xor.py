@@ -46,7 +46,7 @@ def main():
                  num_gaussians=num_of_gaussians,
                  num_classes=num_classes)
 
-    criterion = torch.nn.BCELoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(epochs):
