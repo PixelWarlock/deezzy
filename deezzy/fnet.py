@@ -36,8 +36,19 @@ class Fnet(torch.nn.Module):
         cmfp = self.class_head(z)
 
         # compute univariate gaussian for fuzzifying the features
-        self.feature_gaussian(x, fgp)
+        fuzzified_features = self.feature_gaussian(x, fgp)
 
         # compute the adjectives of the fuzzified features
+        # max is differentiable with respect to the values, not the indices
+        adjectives = ... #torch.max(fuzzified_features, dim=-1).indices
 
         # compute the class assigment using multivariate gaussian
+        assigments = self.class_gaussian(adjectives, cmfp)
+
+        # sum assigments for all the gaussians beloning to the specific class
+        summation = torch.sum(assigments, dim=-1)
+
+        # run it through a softmax to normalize the summation and output the probability distribution 
+        output = torch.nn.functional.softmax(summation, dim=-1)
+
+        return output

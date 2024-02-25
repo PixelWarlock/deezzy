@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from deezzy.fnet import Fnet
 from deezzy.modules.linear import LinearRelu
 
@@ -46,17 +47,24 @@ def main():
                  num_gaussians=num_of_gaussians,
                  num_classes=num_classes)
 
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(epochs):
     
         losses = list()
         for inputs, target in dataloader:
-            
-            pred = model(inputs)
 
+            optimizer.zero_grad()
+            logits = model(inputs)
+            logits=torch.max(logits,dim=-1).values
+            loss = criterion(logits, target)
 
+            loss.backward()
+            optimizer.step()
+            losses.append(loss.item())
+
+        print(f"Epoch: {epoch} | Loss: {np.mean(losses)} | Logits: {logits}")
 
 if __name__ == "__main__":
     main()
