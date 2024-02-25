@@ -1,5 +1,6 @@
 import torch
 from deezzy.memberships.gaussian import Gaussian
+from deezzy.modules.softargmax import SoftArgMax
 from deezzy.modules.linear import LinearFeatureHead, LinearClassHead
 
 class Fnet(torch.nn.Module):
@@ -24,6 +25,7 @@ class Fnet(torch.nn.Module):
                                           num_gaussians=num_gaussians)
 
         self.feature_gaussian = Gaussian(univariate=True)
+        self.softargmax = SoftArgMax(beta=100.)
         self.class_gaussian = Gaussian(univariate=False)
 
     def forward(self, x):
@@ -40,7 +42,7 @@ class Fnet(torch.nn.Module):
 
         # compute the adjectives of the fuzzified features
         # max is differentiable with respect to the values, not the indices
-        adjectives = ... #torch.max(fuzzified_features, dim=-1).indices
+        adjectives = self.softargmax(fuzzified_features) #torch.max(fuzzified_features, dim=-1).indices
 
         # compute the class assigment using multivariate gaussian
         assigments = self.class_gaussian(adjectives, cmfp)
@@ -51,4 +53,5 @@ class Fnet(torch.nn.Module):
         # run it through a softmax to normalize the summation and output the probability distribution 
         output = torch.nn.functional.softmax(summation, dim=-1)
 
-        return output
+        #compute the max
+        return self.softargmax(output)

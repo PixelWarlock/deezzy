@@ -57,14 +57,13 @@ def main():
 
             optimizer.zero_grad()
             logits = model(inputs)
-            logits=torch.max(logits,dim=-1).values
             loss = criterion(logits, target)
 
             loss.backward()
             optimizer.step()
             losses.append(loss.item())
 
-        print(f"Epoch: {epoch} | Loss: {np.mean(losses)} | Logits: {logits}")
+        print(f"Epoch: {epoch} | Loss: {np.mean(losses)}")
 
 if __name__ == "__main__":
     main()

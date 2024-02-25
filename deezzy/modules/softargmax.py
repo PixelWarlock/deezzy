@@ -2,7 +2,7 @@ import torch
 
 class SoftArgMax(torch.nn.Module):
 
-    def __init__(self, beta:float=1000.) -> None:
+    def __init__(self, beta:float=100.) -> None:
         """
         SoftArgMax is a function that return the approximation of an indice of a maximum value in a tensor
         Args:
