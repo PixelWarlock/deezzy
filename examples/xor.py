@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 from deezzy.fnet import Fnet
@@ -33,6 +34,10 @@ def main():
     batch_size=4
     epochs=500
 
+    save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
+    if os.path.exists(save_dir) is False:
+        os.mkdir(save_dir)
+
     dataset = XorDataset()
     dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
 
@@ -56,12 +61,15 @@ def main():
         for inputs, target in dataloader:
 
             optimizer.zero_grad()
-            logits = model(inputs)
+            logits, fgp, cmfp = model(inputs)
             loss = criterion(logits, target)
 
             loss.backward()
             optimizer.step()
             losses.append(loss.item())
+
+            torch.save(fgp, os.path.join(save_dir, f"fgp_epoch_{epoch}.pt"))
+            torch.save(cmfp, os.path.join(save_dir, f"cmfp_epoch_{epoch}.pt"))
 
         print(f"Epoch: {epoch} | Loss: {np.mean(losses)}")
 

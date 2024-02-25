@@ -54,4 +54,4 @@ class Fnet(torch.nn.Module):
         output = torch.nn.functional.softmax(summation, dim=-1)
 
         #compute the max
-        return self.softargmax(output)
+        return self.softargmax(output), fgp, cmfp
