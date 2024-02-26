@@ -37,14 +37,16 @@ def main():
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
         os.mkdir(save_dir)
+        os.mkdir(os.path.join(save_dir, 'fgp'))
+        os.mkdir(os.path.join(save_dir, 'cmfp'))
 
     dataset = XorDataset()
-    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
+    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 
     backbone = torch.nn.Sequential(
         LinearRelu(in_features=in_features, out_features=128),
-        LinearRelu(in_features=128, out_features=128),
-        LinearRelu(in_features=128, out_features=128)
+        LinearRelu(in_features=128, out_features=256),
+        LinearRelu(in_features=256, out_features=128)
     )
     model = Fnet(backbone=backbone,
                  in_features=in_features,
@@ -68,8 +70,8 @@ def main():
             optimizer.step()
             losses.append(loss.item())
 
-            torch.save(fgp, os.path.join(save_dir, f"fgp_epoch_{epoch}.pt"))
-            torch.save(cmfp, os.path.join(save_dir, f"cmfp_epoch_{epoch}.pt"))
+            torch.save(fgp, os.path.join(save_dir, f"fgp/epoch_{epoch}.pt"))
+            torch.save(cmfp, os.path.join(save_dir, f"cmfp/epoch_{epoch}.pt"))
 
         print(f"Epoch: {epoch} | Loss: {np.mean(losses)}")
 

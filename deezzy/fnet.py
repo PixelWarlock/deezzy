@@ -1,6 +1,7 @@
 import torch
 from deezzy.memberships.gaussian import Gaussian
 from deezzy.modules.softargmax import SoftArgMax
+from deezzy.modules.reduce import ReduceAndCopy
 from deezzy.modules.linear import LinearFeatureHead, LinearClassHead
 
 class Fnet(torch.nn.Module):
@@ -23,7 +24,8 @@ class Fnet(torch.nn.Module):
                                           in_features=in_features,
                                           num_classes=num_classes,
                                           num_gaussians=num_gaussians)
-
+        
+        self.rac = ReduceAndCopy()
         self.feature_gaussian = Gaussian(univariate=True)
         self.softargmax = SoftArgMax(beta=100.)
         self.class_gaussian = Gaussian(univariate=False)
@@ -32,10 +34,10 @@ class Fnet(torch.nn.Module):
         z = self.backbone(x)
         
         # compute representation with which we will fuziffy features
-        fgp = self.feature_head(z)
+        fgp = self.rac(self.feature_head(z))
 
         # compute representation with which we will turn adjectives of features into class probabilities
-        cmfp = self.class_head(z)
+        cmfp = self.rac(self.class_head(z))
 
         # compute univariate gaussian for fuzzifying the features
         fuzzified_features = self.feature_gaussian(x, fgp)

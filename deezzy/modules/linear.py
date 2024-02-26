@@ -24,6 +24,17 @@ class LinearReluDropout(torch.nn.Module):
     def forward(self,x):
         return self.module(x)
     
+class LinearSigmoid(torch.nn.Module):
+    def __init__(self, in_features:int, out_features:int):
+        super(LinearSigmoid, self).__init__()
+        self.module = torch.nn.Sequential(
+            torch.nn.Linear(in_features=in_features, out_features=out_features),
+            torch.nn.Sigmoid()
+        )
+    
+    def forward(self,x):
+        return self.module(x)
+    
 class LinearFeatureHead(torch.nn.Module):
     def __init__(self,
                  hidden_size:int,
@@ -34,7 +45,7 @@ class LinearFeatureHead(torch.nn.Module):
         self.linear_layers = torch.nn.ModuleList()
         head_shape = math.prod((in_features, granularity,2))
         for _ in range(head_shape):
-            self.linear_layers.append(torch.nn.Linear(in_features=hidden_size, out_features=1))
+            self.linear_layers.append(LinearSigmoid(in_features=hidden_size, out_features=1))
 
         self.in_features = in_features
         self.granularity = granularity
@@ -58,7 +69,7 @@ class LinearClassHead(torch.nn.Module):
         self.linear_layers = torch.nn.ModuleList()
         head_shape = math.prod((num_classes, num_gaussians, in_features, 2))
         for _ in range(head_shape):
-            self.linear_layers.append(torch.nn.Linear(in_features=hidden_size, out_features=1))
+            self.linear_layers.append(LinearSigmoid(in_features=hidden_size, out_features=1))
 
         self.in_features = in_features
         self.num_gaussians = num_gaussians
