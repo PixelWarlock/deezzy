@@ -46,7 +46,7 @@ class Animator:
             "f1g1":[],
             "domain":[]
         }
-        fgp = torch.load(fgp_filepath).detach().cpu()[0,...].view(1, 2,2,2)
+        fgp = torch.load(fgp_filepath).detach().cpu().unsqueeze(dim=0) #[0,...].view(1, 2,2,2)
         while point < 3.:
             
             inputs = torch.Tensor([point, point]).unsqueeze(dim=0)
@@ -91,7 +91,7 @@ class Animator:
             "domain":[]
         }
 
-        cmfp = torch.load(cmfp_filepath).detach().cpu()[0,...].view(1,2,2,2,2)
+        cmfp = torch.load(cmfp_filepath).detach().cpu().unsqueeze(dim=0) #[0,...].view(1,2,2,2,2)
 
         for combo in self.combinations:
             
@@ -242,8 +242,8 @@ class Animator:
 
         # features
         axes[0,0].grid(True)
-        axes[0,0].plot(fgp_output['domain'],fgp_output['f0g0'], 'r')
-        axes[0,0].plot(fgp_output['domain'],fgp_output['f0g1'], 'b')
+        axes[0,0].plot(fgp_output['domain'],fgp_output['f0g0'], 'b')
+        axes[0,0].plot(fgp_output['domain'],fgp_output['f0g1'], 'r')
         axes[0,0].set_title("Feature 0")
         axes[0,0].set_xlabel("Input value")
         axes[0,0].set_ylabel("Membership degree")
@@ -251,8 +251,8 @@ class Animator:
         axes[0,0].set_xlim([-2,3])
 
         axes[0,1].grid(True)
-        axes[0,1].plot(fgp_output['domain'],fgp_output['f1g0'], 'r')
-        axes[0,1].plot(fgp_output['domain'],fgp_output['f1g1'], 'b')
+        axes[0,1].plot(fgp_output['domain'],fgp_output['f1g0'], 'b')
+        axes[0,1].plot(fgp_output['domain'],fgp_output['f1g1'], 'r')
         axes[0,1].set_title("Feature 1")
         axes[0,1].set_xlim([-2,3])
         axes[0,1].set_xlabel("Input value")

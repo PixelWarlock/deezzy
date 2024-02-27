@@ -2,7 +2,10 @@ import os
 import torch
 import numpy as np
 from deezzy.fnet import Fnet
-from deezzy.modules.linear import LinearRelu
+from deezzy.losses import AscendingMeanLoss
+from deezzy.modules.linear import LinearRelu, LinearReluDropout
+
+#torch.manual_seed(0)
 
 class XorDataset(torch.utils.data.Dataset):
     
@@ -41,12 +44,12 @@ def main():
         os.mkdir(os.path.join(save_dir, 'cmfp'))
 
     dataset = XorDataset()
-    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False) #, num_workers=8
 
     backbone = torch.nn.Sequential(
-        LinearRelu(in_features=in_features, out_features=128),
-        LinearRelu(in_features=128, out_features=256),
-        LinearRelu(in_features=256, out_features=128)
+        LinearReluDropout(in_features=in_features, out_features=256),
+        LinearReluDropout(in_features=256, out_features=256),
+        LinearReluDropout(in_features=256, out_features=256)
     )
     model = Fnet(backbone=backbone,
                  in_features=in_features,
@@ -54,7 +57,9 @@ def main():
                  num_gaussians=num_of_gaussians,
                  num_classes=num_classes)
 
-    criterion = torch.nn.BCELoss()
+    class_criterion = torch.nn.BCELoss()
+    ascending_mean_criterion = AscendingMeanLoss()
+
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(epochs):
@@ -64,7 +69,9 @@ def main():
 
             optimizer.zero_grad()
             logits, fgp, cmfp = model(inputs)
-            loss = criterion(logits, target)
+            criterion_loss = class_criterion(logits, target)
+            am_loss = ascending_mean_criterion(fgp)
+            loss = criterion_loss + am_loss
 
             loss.backward()
             optimizer.step()
