@@ -33,9 +33,9 @@ def main():
     granularity = 2
     num_of_gaussians = 2
     num_classes = 2
-    learning_rate = 0.001
+    learning_rate = 0.0003
     batch_size=4
-    epochs=500
+    epochs=1000
 
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
