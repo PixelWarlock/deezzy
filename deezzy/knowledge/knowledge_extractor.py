@@ -9,11 +9,11 @@ from deezzy.knowledge.membership import Membership
 
 class KnowledgeExtractor:
     def __init__(self,
-                 fgp_path:str,
-                 cmfp_path:str):
+                 fgp:torch.tensor,
+                 cmfp:torch.tensor):
         
-        self.fgp =  torch.load(fgp_path).detach().cpu()
-        self.cmfp = torch.load(cmfp_path).detach().cpu()
+        self.fgp = fgp
+        self.cmfp = cmfp
         self.univariate = Gaussian(univariate=True)
         self.multivariate = Gaussian(univariate=False)
         
@@ -104,14 +104,16 @@ class KnowledgeExtractor:
         domain = torch.cat([torch.arange(start=0.0, end=1.+step, step=step).unsqueeze(dim=0) for _ in range(f)], dim=0).T
         features = self.get_features(domain=domain, num_features=f, num_gaussians=g)
         knowledge = self.explain(features=features)
-        
         print(knowledge)
     
 if __name__ == "__main__":
     fgp_path = "outputs/xor_representations/fgp/epoch_999.pt"
     cmfp_path = "outputs/xor_representations/cmfp/epoch_999.pt"
 
-    KnowledgeExtractor(fgp_path=fgp_path,
-                       cmfp_path=cmfp_path)()
+    fgp =  torch.load(fgp_path).detach().cpu()
+    cmfp = torch.load(cmfp_path).detach().cpu()
+
+    KnowledgeExtractor(fgp=fgp,
+                       cmfp=cmfp)()
 
 

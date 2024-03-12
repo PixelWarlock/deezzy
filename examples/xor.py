@@ -4,6 +4,7 @@ import numpy as np
 from deezzy.fnet import Fnet
 from deezzy.losses import AscendingMeanLoss, SquashingVarianceLoss
 from deezzy.modules.linear import LinearRelu, LinearReluDropout
+from deezzy.knowledge.knowledge_extractor import KnowledgeExtractor
 
 torch.manual_seed(2)
 
@@ -33,9 +34,9 @@ def main():
     granularity = 2
     num_of_gaussians = 2
     num_classes = 2
-    learning_rate = 0.001
+    learning_rate = 0.0003
     batch_size=4
-    epochs=20000
+    epochs=7000
 
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
@@ -72,10 +73,10 @@ def main():
             logits, fgp, cmfp = model(inputs)
 
             criterion_loss = class_criterion(logits, target)
-            am_loss = ascending_mean_criterion(fgp)
+            #am_loss = ascending_mean_criterion(fgp)
             var_loss = squashing_variance_criterion(fgp)
 
-            loss = criterion_loss + am_loss  + var_loss 
+            loss = criterion_loss + var_loss #+ am_loss
 
             loss.backward()
             optimizer.step()
@@ -85,6 +86,8 @@ def main():
             torch.save(cmfp, os.path.join(save_dir, f"cmfp/epoch_{epoch}.pt"))
 
         print(f"Epoch: {epoch} | Loss: {np.mean(losses)}")
+
+    KnowledgeExtractor(fgp=fgp.detach(), cmfp=cmfp.detach())()
 
 if __name__ == "__main__":
     main()
