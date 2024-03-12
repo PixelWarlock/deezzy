@@ -52,6 +52,7 @@ coverage.xml
 cover/
 outputs/
 examples/iris_dataset.csv
+examples/visualize_xor.py
 # Translations
 *.mo
 *.pot

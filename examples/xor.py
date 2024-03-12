@@ -34,9 +34,9 @@ def main():
     granularity = 2
     num_of_gaussians = 2
     num_classes = 2
-    learning_rate = 0.0003
+    learning_rate = 0.0008
     batch_size=4
-    epochs=7000
+    epochs=3000
 
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
@@ -73,10 +73,10 @@ def main():
             logits, fgp, cmfp = model(inputs)
 
             criterion_loss = class_criterion(logits, target)
-            #am_loss = ascending_mean_criterion(fgp)
+            am_loss = ascending_mean_criterion(fgp)
             var_loss = squashing_variance_criterion(fgp)
 
-            loss = criterion_loss + var_loss #+ am_loss
+            loss = criterion_loss + var_loss + am_loss
 
             loss.backward()
             optimizer.step()

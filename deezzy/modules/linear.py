@@ -50,7 +50,7 @@ class LinearFeatureHead(torch.nn.Module):
             for _ in range(granularity):
                 for p in range(2):
                     linear_layer = torch.nn.Linear(in_features=hidden_size, out_features=1) #LinearSigmoid(in_features=hidden_size, out_features=1)
-                    if p == 1:
+                    if p == 0:
                         linear_layer.weight.data.fill_(factor)
                         factor +=factor
                     sigmoid_layer = torch.nn.Sigmoid()
