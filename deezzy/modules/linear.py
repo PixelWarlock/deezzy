@@ -44,9 +44,26 @@ class LinearFeatureHead(torch.nn.Module):
 
         self.linear_layers = torch.nn.ModuleList()
         head_shape = math.prod((in_features, granularity,2))
+        
+        factor = 1./granularity
+        for _ in range(in_features):
+            for _ in range(granularity):
+                for p in range(2):
+                    linear_layer = torch.nn.Linear(in_features=hidden_size, out_features=1) #LinearSigmoid(in_features=hidden_size, out_features=1)
+                    if p == 1:
+                        linear_layer.weight.data.fill_(factor)
+                        factor +=factor
+                    sigmoid_layer = torch.nn.Sigmoid()
+                    self.linear_layers.append(
+                        torch.nn.Sequential(
+                            linear_layer,
+                            sigmoid_layer
+                        )
+                    )
+        """
         for _ in range(head_shape):
             self.linear_layers.append(LinearSigmoid(in_features=hidden_size, out_features=1))
-
+        """
         self.in_features = in_features
         self.granularity = granularity
 

@@ -292,4 +292,4 @@ class Animator:
 if __name__ == '__main__':
     animator = Animator(os.path.join(os.getcwd(), "outputs/xor_representations")) #.run_animate_fgp()
     #animator.animate_and_save_as_images(output_dir=os.path.join(os.path.join(os.getcwd(), "outputs/results"))) 
-    animator.preview_epoch(epoch=999)
+    animator.preview_epoch(epoch=19999)

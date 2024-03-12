@@ -15,3 +15,14 @@ class AscendingMeanLoss(torch.nn.Module):
         targets_indicies = torch.ones(f) * (g-1)
         #return self.bceloss(logits_indicies, targets_indicies)
         return 1. - self.cossim(logits_indicies.unsqueeze(dim=0), targets_indicies.unsqueeze(dim=0))
+    
+class SquashingVarianceLoss(torch.nn.Module):
+    def __init__(self):
+        super(SquashingVarianceLoss, self).__init__()
+
+    def forward(self, x):
+        num_features, granularity, num_params = x.size()
+        var = x.view(num_features*granularity,num_params)[...,1].view(num_features,granularity)
+        factor = num_features*granularity*num_params
+        return var.sum()/factor
+

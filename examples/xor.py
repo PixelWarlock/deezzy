@@ -2,10 +2,10 @@ import os
 import torch
 import numpy as np
 from deezzy.fnet import Fnet
-from deezzy.losses import AscendingMeanLoss
+from deezzy.losses import AscendingMeanLoss, SquashingVarianceLoss
 from deezzy.modules.linear import LinearRelu, LinearReluDropout
 
-#torch.manual_seed(0)
+torch.manual_seed(2)
 
 class XorDataset(torch.utils.data.Dataset):
     
@@ -33,9 +33,9 @@ def main():
     granularity = 2
     num_of_gaussians = 2
     num_classes = 2
-    learning_rate = 0.0003
+    learning_rate = 0.001
     batch_size=4
-    epochs=1000
+    epochs=20000
 
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
@@ -47,9 +47,9 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False) #, num_workers=8
 
     backbone = torch.nn.Sequential(
-        LinearReluDropout(in_features=in_features, out_features=256),
-        LinearReluDropout(in_features=256, out_features=256),
-        LinearReluDropout(in_features=256, out_features=256)
+        LinearReluDropout(in_features=in_features, out_features=128),
+        LinearReluDropout(in_features=128, out_features=128),
+        LinearReluDropout(in_features=128, out_features=128)
     )
     model = Fnet(backbone=backbone,
                  in_features=in_features,
@@ -59,6 +59,7 @@ def main():
 
     class_criterion = torch.nn.BCELoss()
     ascending_mean_criterion = AscendingMeanLoss()
+    squashing_variance_criterion = SquashingVarianceLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -69,9 +70,12 @@ def main():
 
             optimizer.zero_grad()
             logits, fgp, cmfp = model(inputs)
+
             criterion_loss = class_criterion(logits, target)
             am_loss = ascending_mean_criterion(fgp)
-            loss = criterion_loss + am_loss
+            var_loss = squashing_variance_criterion(fgp)
+
+            loss = criterion_loss + am_loss  + var_loss 
 
             loss.backward()
             optimizer.step()
