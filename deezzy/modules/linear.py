@@ -24,6 +24,17 @@ class LinearReluDropout(torch.nn.Module):
     def forward(self,x):
         return self.module(x)
     
+class LinearLeakyRelu(torch.nn.Module):
+    def __init__(self, in_features:int, out_features:int):
+        super(LinearLeakyRelu, self).__init__()
+        self.module = torch.nn.Sequential(
+            torch.nn.Linear(in_features=in_features, out_features=out_features),
+            torch.nn.LeakyReLU(),
+        )
+    
+    def forward(self,x):
+        return self.module(x)
+    
 class LinearSigmoid(torch.nn.Module):
     def __init__(self, in_features:int, out_features:int):
         super(LinearSigmoid, self).__init__()

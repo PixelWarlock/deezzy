@@ -76,8 +76,21 @@ class KnowledgeExtractor:
 
         statement += f"CATEGORY={assigment}\n"
         return statement
+    
+    def explain_features(self, features:list):
+        statemets = ""
+        for feature in features:
+            statemets += f"Feature: {feature.index}\n"
+            for membership in feature.memberships:
+                statemets += f"Is {membership} when is in-between <{'{0:0.4f}'.format(membership.begining)},{'{0:0.4f}'.format(membership.end)}>\n"
+        return statemets
 
     def explain(self, features:list):
+
+        print(50*'-')
+        print(self.explain_features(features=features))
+        print(50*'-')
+        
         adjectives_values = []
         adjectives_names = []
 
@@ -107,8 +120,8 @@ class KnowledgeExtractor:
         print(knowledge)
     
 if __name__ == "__main__":
-    fgp_path = "outputs/xor_representations/fgp/epoch_999.pt"
-    cmfp_path = "outputs/xor_representations/cmfp/epoch_999.pt"
+    fgp_path = "outputs/iris_representations/fgp/epoch_499.pt"
+    cmfp_path = "outputs/iris_representations/cmfp/epoch_499.pt"
 
     fgp =  torch.load(fgp_path).detach().cpu()
     cmfp = torch.load(cmfp_path).detach().cpu()

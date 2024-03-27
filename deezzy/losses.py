@@ -13,7 +13,6 @@ class AscendingMeanLoss(torch.nn.Module):
         for i in range(n):
             chunks.append(mean[:, i:i+2].T)
         return chunks
-
     
     def compute_loss(self, chunk:torch.Tensor):
         div = chunk[:-1]/chunk[1:]
@@ -46,3 +45,11 @@ class SquashingVarianceLoss(torch.nn.Module):
         factor = num_features*granularity*num_params
         return var.sum()/factor
 
+class SparseCategoricalLoss(torch.nn.Module):
+    def __init__(self):
+        super(SparseCategoricalLoss, self).__init__()
+    
+    def forward(self, logits, targets):
+        log = torch.log(logits/targets)
+        #return torch.sqrt(torch.pow(log,2)).mean()
+        return torch.pow(log,2).mean()
