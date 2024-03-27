@@ -4,17 +4,37 @@ from deezzy.modules.softargmax import SoftArgMax
 class AscendingMeanLoss(torch.nn.Module):
     def __init__(self):
         super(AscendingMeanLoss, self).__init__()
-        self.softargmax = SoftArgMax(beta=10000., keepdim=False)
-        self.bceloss = torch.nn.BCELoss()
-        self.cossim = torch.nn.CosineSimilarity()
+
+    def get_chunks(self, x):
+        _,g,_ = x.shape
+        n = g - 1 
+        mean = x[...,0]
+        chunks = list()
+        for i in range(n):
+            chunks.append(mean[:, i:i+2].T)
+        return chunks
+
+    
+    def compute_loss(self, chunk:torch.Tensor):
+        div = chunk[:-1]/chunk[1:]
+        log = torch.log(div)
+        loss = torch.nn.functional.relu(log).sum()
+        return loss
 
     def forward(self, x):
-        f,g,_ = x.size()
-        mean = x[...,0]
-        logits_indicies = self.softargmax(mean)
-        targets_indicies = torch.ones(f) * (g-1)
-        #return self.bceloss(logits_indicies, targets_indicies)
-        return 1. - self.cossim(logits_indicies.unsqueeze(dim=0), targets_indicies.unsqueeze(dim=0))
+        _,g,_ = x.shape
+        if g<=1:
+            raise ValueError("Doesn't make sense")
+        elif g==2:
+            mean = x[...,0].T
+            return self.compute_loss(chunk=mean)
+        else:
+            chunks = self.get_chunks(x=x)
+            losses=torch.zeros(len(chunks))
+            for i,chunk in enumerate(chunks):
+                losses[i] = self.compute_loss(chunk=chunk)
+            return losses.sum()
+        
     
 class SquashingVarianceLoss(torch.nn.Module):
     def __init__(self):

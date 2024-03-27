@@ -1,12 +1,12 @@
 import os
 import torch
 import numpy as np
-from deezzy.fnet import Fnet
-from deezzy.losses import AscendingMeanLoss, SquashingVarianceLoss
-from deezzy.modules.linear import LinearRelu, LinearReluDropout
+from deezzy.fnet import BinaryFnet
+from deezzy.losses import AscendingMeanLoss
+from deezzy.modules.linear import LinearReluDropout
 from deezzy.knowledge.knowledge_extractor import KnowledgeExtractor
 
-torch.manual_seed(2)
+torch.manual_seed(6)
 
 class XorDataset(torch.utils.data.Dataset):
     
@@ -36,7 +36,7 @@ def main():
     num_classes = 2
     learning_rate = 0.0008
     batch_size=4
-    epochs=3000
+    epochs=500
 
     save_dir = os.path.join(os.getcwd(), "outputs/xor_representations")
     if os.path.exists(save_dir) is False:
@@ -52,7 +52,7 @@ def main():
         LinearReluDropout(in_features=128, out_features=128),
         LinearReluDropout(in_features=128, out_features=128)
     )
-    model = Fnet(backbone=backbone,
+    model = BinaryFnet(backbone=backbone,
                  in_features=in_features,
                  granularity=granularity,
                  num_gaussians=num_of_gaussians,
@@ -60,7 +60,6 @@ def main():
 
     class_criterion = torch.nn.BCELoss()
     ascending_mean_criterion = AscendingMeanLoss()
-    squashing_variance_criterion = SquashingVarianceLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -74,9 +73,7 @@ def main():
 
             criterion_loss = class_criterion(logits, target)
             am_loss = ascending_mean_criterion(fgp)
-            var_loss = squashing_variance_criterion(fgp)
-
-            loss = criterion_loss + var_loss + am_loss
+            loss = criterion_loss + am_loss 
 
             loss.backward()
             optimizer.step()
