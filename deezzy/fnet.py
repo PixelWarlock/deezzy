@@ -119,7 +119,7 @@ class CategoricalFnet(torch.nn.Module):
         # sum assigments for all the gaussians beloning to the specific class
         summation = torch.sum(assigments, dim=-1)
         
-        """
+        
         # run it through a softmax to normalize the summation and output the probability distribution 
         output = torch.nn.functional.softmax(summation, dim=-1)
         """
@@ -127,5 +127,7 @@ class CategoricalFnet(torch.nn.Module):
 
         #compute the softargmax
         output = self.softargmax(normalized)
+        """
         
         return output, fgp, cmfp
+        

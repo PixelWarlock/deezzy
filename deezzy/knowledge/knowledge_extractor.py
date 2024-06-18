@@ -66,15 +66,15 @@ class KnowledgeExtractor:
 
     def construct_statement(self, adjectives:np.array, assigment:int):
         num_features = len(adjectives)
-        statement = "IF "
+        statement = "if "
         for f in range(num_features):
-            statement += f'Feature_{f} is {adjectives[f]}'
+            statement += f'Feature_{f}.adjective == "{adjectives[f]}"'
             if f < num_features-1:
                 statement += " and "
             else:
                 statement += ":\n"
 
-        statement += f"CATEGORY={assigment}\n"
+        statement += f" CATEGORY={assigment}\n"
         return statement
     
     def explain_features(self, features:list):

@@ -54,6 +54,7 @@ outputs/
 examples/iris_dataset.csv
 examples/visualize_xor.py
 examples/testing.ipynb
+notebooks/
 # Translations
 *.mo
 *.pot
