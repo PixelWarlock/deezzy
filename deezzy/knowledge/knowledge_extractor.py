@@ -66,15 +66,16 @@ class KnowledgeExtractor:
 
     def construct_statement(self, adjectives:np.array, assigment:int):
         num_features = len(adjectives)
-        statement = "if "
+        #statement = "if "
+        statement = ""
         for f in range(num_features):
             statement += f'Feature_{f}.adjective == "{adjectives[f]}"'
             if f < num_features-1:
                 statement += " and "
             else:
-                statement += ":\n"
+                statement += "\n"
 
-        statement += f" CATEGORY={assigment}\n"
+        statement += f"    CATEGORY={assigment}\n"
         return statement
     
     def explain_features(self, features:list):
@@ -84,6 +85,31 @@ class KnowledgeExtractor:
             for membership in feature.memberships:
                 statemets += f"Is {membership} when is in-between <{'{0:0.4f}'.format(membership.begining)},{'{0:0.4f}'.format(membership.end)}>\n"
         return statemets
+    
+    def group_statements(self, statements):
+
+        grouped_statements = ""
+        
+        lines = statements.split('\n')
+        category_dict = {}
+        for line_index,line in enumerate(lines):
+            if "CATEGORY" in line:
+                category=int(line.split("=")[1])
+                category_dict[line_index] = category
+
+        # check where category is the same
+        categories = np.unique(list(category_dict.values()))
+        for c in categories:
+            category_statements = np.where(list(category_dict.values())==c)[0]
+            category_lines = np.take(list(category_dict.keys()), category_statements)
+            explain_lines_indexes = category_lines - 1
+            explain_lines = [lines[eli] for eli in explain_lines_indexes]
+
+            till_last_explain_line = explain_lines[:-1]
+            grouped_statements += " or ".join(till_last_explain_line)
+            grouped_statements += f" or {explain_lines[-1]}:\n    CATEGORY={c}\n"
+
+        return grouped_statements
 
     def explain(self, features:list):
 
@@ -110,7 +136,7 @@ class KnowledgeExtractor:
         for adj, assigment in zip(adjectives_names, assigments):
             statements += self.construct_statement(adjectives=adj, assigment=assigment)
 
-        return statements
+        return self.group_statements(statements)
 
     def __call__(self, step:float = 0.01):
         f,g,_ = self.fgp.shape
