@@ -4,9 +4,11 @@ class Gaussian(torch.nn.Module):
     def __init__(self, univariate:bool):
         super(Gaussian, self).__init__()
         self.univariate=univariate
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _compute_inverse_cov_matrix(self, variance:torch.Tensor):
         b,c,g,f = variance.size()
+        # view(...).to(self.device) 
         covariance_matrix = torch.pow((torch.cat([torch.eye(f) for _ in range(b*c*g)]).view(b,c,g,f,f) * variance.unsqueeze(dim=-1)),2)
         return torch.inverse(covariance_matrix)
 

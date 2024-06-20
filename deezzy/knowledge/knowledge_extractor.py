@@ -2,6 +2,7 @@ import os
 import torch
 import itertools
 import numpy as np
+import pandas as pd
 from deezzy.knowledge.feature import Feature
 from deezzy.memberships.gaussian import Gaussian
 from deezzy.knowledge.membership import Membership
@@ -10,10 +11,12 @@ from deezzy.knowledge.membership import Membership
 class KnowledgeExtractor:
     def __init__(self,
                  fgp:torch.tensor,
-                 cmfp:torch.tensor):
+                 cmfp:torch.tensor,
+                 scaler=None):
         
         self.fgp = fgp
         self.cmfp = cmfp
+        self.scaler = scaler
         self.univariate = Gaussian(univariate=True)
         self.multivariate = Gaussian(univariate=False)
         
@@ -81,15 +84,15 @@ class KnowledgeExtractor:
     def explain_features(self, features:list):
         statemets = ""
         for feature in features:
-            statemets += f"Feature: {feature.index}\n"
+            statemets += f"Feature_{feature.index}:\n"
             for membership in feature.memberships:
-                statemets += f"Is {membership} when is in-between <{'{0:0.4f}'.format(membership.begining)},{'{0:0.4f}'.format(membership.end)}>\n"
+                #statemets += f"Is {membership} when is in-between <{'{0:0.4f}'.format(membership.begining)},{'{0:0.4f}'.format(membership.end)}>\n"
+                statemets += f"{membership}: <{'{0:0.4f}'.format(membership.begining)},{'{0:0.4f}'.format(membership.end)}>\n"
         return statemets
     
     def group_statements(self, statements):
-
-        grouped_statements = ""
         
+        grouped_statements = ""
         lines = statements.split('\n')
         category_dict = {}
         for line_index,line in enumerate(lines):
@@ -109,12 +112,20 @@ class KnowledgeExtractor:
             grouped_statements += " or ".join(till_last_explain_line)
             grouped_statements += f" or {explain_lines[-1]}:\n    CATEGORY={c}\n"
 
-        return grouped_statements
+        # adding "if"
+        grouped_statements_lines = grouped_statements.split('\n')
+        for i,l in enumerate(grouped_statements_lines):
+            if l.startswith('F'):
+                grouped_statements_lines[i] = f'if {l}'
+            elif l.startswith('    C'):
+                grouped_statements_lines[i] = f'\n{l}\n'
+        return ''.join(grouped_statements_lines)
 
     def explain(self, features:list):
 
         print(50*'-')
-        print(self.explain_features(features=features))
+        features_description = self.explain_features(features=features)
+        print(features_description)
         print(50*'-')
         
         adjectives_values = []
@@ -137,17 +148,49 @@ class KnowledgeExtractor:
             statements += self.construct_statement(adjectives=adj, assigment=assigment)
 
         return self.group_statements(statements)
+    
+    def renormalize(self, dataframe):
+        memberships = dataframe.Membership.unique()
+        for m in memberships:
+            subset = dataframe[dataframe.Membership == m]
+            for value in ['Begining', 'End']: # begining, end
+                renormalized = list(self.scaler.inverse_transform([subset[value].to_numpy()]).squeeze())
+                for i,scalar in enumerate(renormalized):
+                    dataframe.loc[(dataframe['Feature index'] == i) & (dataframe['Membership'].str.startswith(m)), [value]] = scalar
+        return dataframe
 
-    def __call__(self, step:float = 0.01):
+    
+    def save_features(self, features, dest):
+        index = 0
+        dataframe = pd.DataFrame(columns=['Feature index', 'Membership', 'Begining', 'End'])
+        for feature in features:
+            for membership in feature.memberships:
+                adjective = str(membership)
+                row = [feature.index, adjective, membership.begining, membership.end]
+                dataframe.loc[index] = row
+                index+=1
+
+        if self.scaler is not None:
+            dataframe.Membership.astype(str)
+            dataframe=self.renormalize(dataframe=dataframe)
+        dataframe.to_csv(os.path.join(dest,"features.csv"), index=False)
+
+
+    def __call__(self, step:float = 0.01, to_file=True):
         f,g,_ = self.fgp.shape
         domain = torch.cat([torch.arange(start=0.0, end=1.+step, step=step).unsqueeze(dim=0) for _ in range(f)], dim=0).T
         features = self.get_features(domain=domain, num_features=f, num_gaussians=g)
         knowledge = self.explain(features=features)
-        print(knowledge)
-    
+        if to_file:
+            dest = os.path.join(os.getcwd(), "results")
+            os.mkdir(dest)
+            with open(os.path.join(dest, f"rules.txt"),'x') as f:
+                f.write(knowledge)
+            self.save_features(features=features, dest=dest)
+            
 if __name__ == "__main__":
-    fgp_path = "outputs/iris_representations/fgp/epoch_499.pt"
-    cmfp_path = "outputs/iris_representations/cmfp/epoch_499.pt"
+    fgp_path = "outputs/iris_representations/fgp/epoch_199.pt"
+    cmfp_path = "outputs/iris_representations/cmfp/epoch_199.pt"
 
     fgp =  torch.load(fgp_path).detach().cpu()
     cmfp = torch.load(cmfp_path).detach().cpu()

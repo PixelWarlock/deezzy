@@ -15,3 +15,8 @@ class Feature:
     
     def __iter__(self):
         return iter(self.memberships)
+    
+    def __call__(self, value):
+        for membership in self.memberships:
+            if membership.begining <= value <= membership.end:
+                self.adjective = str(membership)

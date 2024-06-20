@@ -12,10 +12,11 @@ class SoftArgMax(torch.nn.Module):
         self.beta = beta
         self.dim = dim
         self.keepdim = keepdim
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         *_, n = x.shape
         softmax = torch.nn.functional.softmax((self.beta*x), dim=self.dim)
-        indices = torch.linspace(0,1,n)
-        outputs = torch.sum((n-1)*softmax*indices, dim=self.dim, keepdim=self.keepdim, dtype=torch.float)
+        indices = torch.linspace(0,1,n) #.to(self.device)
+        outputs = torch.sum((n-1)*softmax*indices, dim=self.dim, keepdim=self.keepdim)
         return outputs
