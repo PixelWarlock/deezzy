@@ -56,7 +56,7 @@ def main():
     num_classes = 3
     learning_rate = 0.0001
     batch_size=150
-    epochs=100
+    epochs=200
 
     save_dir = os.path.join(os.getcwd(), "outputs/iris_representations")
     if os.path.exists(save_dir) is False:
