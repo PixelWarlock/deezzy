@@ -63,11 +63,11 @@ def calculate_accuracy(logits, targets):
 def main():
     in_features = 14
     granularity = 2
-    num_of_gaussians = 8
+    num_of_gaussians = 20
     num_classes = 9
-    learning_rate = 0.0003
+    learning_rate = 0.0001
     batch_size=1281
-    epochs=3000
+    epochs=25000
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     save_dir = os.path.join(os.getcwd(), "outputs/anemia_representations")
@@ -81,6 +81,7 @@ def main():
 
     backbone = torch.nn.Sequential(
         torch.nn.Linear(in_features=in_features, out_features=256),
+        torch.nn.Linear(in_features=256, out_features=256),
         torch.nn.Linear(in_features=256, out_features=256),
     )
     model = CategoricalFnet(backbone=backbone,
@@ -123,7 +124,7 @@ def main():
 
         print(f"Epoch: {epoch} | Loss: {np.mean(losses)} | Accuracy: {np.mean(accuracies)}")
 
-    KnowledgeExtractor(fgp=fgp.detach(), cmfp=cmfp.detach())()
+    KnowledgeExtractor(fgp=fgp.detach(), cmfp=cmfp.detach(), scaler=dataset.scaler)()
     
 if __name__ == "__main__":
     main()

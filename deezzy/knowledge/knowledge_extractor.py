@@ -123,11 +123,8 @@ class KnowledgeExtractor:
 
     def explain(self, features:list):
 
-        print(50*'-')
         features_description = self.explain_features(features=features)
-        print(features_description)
-        print(50*'-')
-        
+
         adjectives_values = []
         adjectives_names = []
 
@@ -189,8 +186,8 @@ class KnowledgeExtractor:
             self.save_features(features=features, dest=dest)
             
 if __name__ == "__main__":
-    fgp_path = "outputs/iris_representations/fgp/epoch_199.pt"
-    cmfp_path = "outputs/iris_representations/cmfp/epoch_199.pt"
+    fgp_path = "outputs/anemia_representations/fgp/epoch_35796.pt"
+    cmfp_path = "outputs/anemia_representations/cmfp/epoch_35796.pt"
 
     fgp =  torch.load(fgp_path).detach().cpu()
     cmfp = torch.load(cmfp_path).detach().cpu()
